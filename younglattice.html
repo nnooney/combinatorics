@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Young's Lattice</title>
+
+  <style>
+    td:first-child {
+      border-right: 2px solid black;
+    }
+    .container {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Compute Young's Lattice Partitions</h1>
+  <div class="container">
+    <p>Input the integer partition as comma separated numbers, then click submit</p>
+    <input class="text" type="text"></input>
+    <button class="button">Submit</button>
+  </div>
+  <div class="results"></div>
+
+  <script type="text/javascript">
+    var button = document.querySelector('.button'),
+        text = document.querySelector('.text'),
+        results = document.querySelector('.results');
+
+    button.addEventListener('click', function(e) {
+        var numbers = JSON.parse('[' + text.value + ']');
+        var num_sum = numbers.reduce(function(prev, cur) { return prev + cur; });
+
+        // Check to make sure we have a valid partition
+        function isValidPartition(partition) {
+          var validPartition = true;
+          partition.forEach(function(val, ind) {
+            if (ind === 0 || val <= partition[ind-1]) {
+              return;
+            }
+            validPartition = false;
+          });
+          return validPartition;
+        }
+
+        if (!isValidPartition(numbers)) {
+          results.innerHTML = "<p>Invalid Partition</p>";
+          return;
+        }
+
+        // Loop over all possible partitions, saving them in an array
+        var partitionArray = [];
+        for (var i=0; i<=num_sum; i++) {
+          partitionArray[i] = [];
+        }
+
+        // We need to use a recursive function to loop over all possible
+        // combinations in the array
+        function sortPartition(partition) {
+          var partitionSum = partition.reduce(function(prev, cur) { return prev + cur; });
+          if (partitionSum > num_sum || !isValidPartition(partition)) { return; }
+          partitionArray[partitionSum].push(partition.join(''));
+        }
+
+        function doCombinations(array, func, args=[], index=0) {
+          if (array.length === 0) {
+            func(args);
+          } else {
+            var newArray = array.slice(1);
+            for (args[index] = 0; args[index] <= array[0]; ++args[index]) {
+              doCombinations(newArray, func, args, index+1);
+            }
+          }
+        }
+
+        // Call the combinations function
+        doCombinations(numbers, sortPartition);
+
+        var resultString = "<table>";
+        partitionArray.forEach(function(val, ind) {
+          resultString += "<tr><td>" + val.length + "</td><td>" + val.join(", ") + "</td></tr>";
+        });
+        resultString += "</table>";
+
+        results.innerHTML = resultString;
+    });
+  </script>
+</body>
+</html>
